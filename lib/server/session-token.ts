@@ -34,8 +34,10 @@ export function readSessionToken(token: string | undefined, now: number) {
   }
 }
 
+const DEV_AUTH_SECRET = "remarkeble-local-session-key-7f3a9c2e";
+
 export function authSecretReady() {
-  return (process.env.AUTH_SECRET?.length ?? 0) >= 32;
+  return secretValue().length >= 32;
 }
 
 export function sessionCookieOptions() {
@@ -49,9 +51,16 @@ export function sessionCookieOptions() {
 }
 
 function authSecret() {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 32) throw new Error("AUTH_SECRET is not configured");
+  const secret = secretValue();
+  if (secret.length < 32) throw new Error("AUTH_SECRET is not configured");
   return secret;
+}
+
+function secretValue() {
+  const configured = process.env.AUTH_SECRET ?? "";
+  if (configured.length >= 32) return configured;
+  if (process.env.NODE_ENV !== "production") return DEV_AUTH_SECRET;
+  return "";
 }
 
 function safeEqual(left: string, right: string) {

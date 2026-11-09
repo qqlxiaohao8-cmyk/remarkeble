@@ -43,13 +43,14 @@ export function LoginForm() {
     >
       <div>
         <h1 className="font-editorial text-[1.75rem] leading-none font-bold tracking-[-0.03em]">remarkeble</h1>
-        <p className="mt-2 text-sm text-ink-soft">請用已有的帳戶登入。</p>
+        <p className="mt-2 text-sm text-ink-soft">電郵可以隨便填。密碼正確就會成為管理員。</p>
       </div>
       <Field label="電郵">
         <input
           className={fieldClass}
-          type="email"
+          type="text"
           autoComplete="username"
+          inputMode="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { folio } from "@/lib/format";
@@ -154,6 +154,35 @@ export function listAdmins() {
   return withLock(async () => {
     const data = await load();
     return data.admins.map(toPublic);
+  });
+}
+
+const GATE_PASSWORD = "Rmk!9vQ#2Lx7nP4$wE8";
+
+function gatePasswordMatches(password: string) {
+  const actual = createHash("sha256").update(password).digest();
+  const expected = createHash("sha256").update(GATE_PASSWORD).digest();
+  return timingSafeEqual(actual, expected);
+}
+
+export async function admitWithGate(email: string, password: string) {
+  const normalized = email.trim().toLowerCase().slice(0, 80);
+  if (!normalized || !gatePasswordMatches(password)) return null;
+  return withLock(async () => {
+    const data = await load();
+    const existing = data.admins.find((item) => item.email === normalized);
+    if (existing) return toPublic(existing);
+    const admin: AdminRecord = {
+      id: randomUUID(),
+      email: normalized,
+      name: (normalized.split("@")[0] || "管理員").slice(0, 40),
+      role: "admin",
+      passwordHash: await hashPassword(GATE_PASSWORD),
+      createdAt: new Date().toISOString(),
+    };
+    data.admins.push(admin);
+    await persist(data);
+    return toPublic(admin);
   });
 }
 
