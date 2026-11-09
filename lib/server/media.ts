@@ -12,7 +12,7 @@ const TYPES: Record<string, { extension: string; mime: string }> = {
 export async function saveImage(bytes: Buffer) {
   const kind = sniff(bytes);
   if (!kind) return { error: "只接受 JPG、PNG、WEBP 或 GIF。" as const };
-  if (bytes.byteLength > 5 * 1024 * 1024) return { error: "圖片不能超過 5MB。" as const };
+  if (bytes.byteLength > 20 * 1024 * 1024) return { error: "圖片不能超過 20MB。" as const };
   const id = randomBytes(16).toString("hex");
   const directory = path.join(process.cwd(), "data", "media");
   await mkdir(directory, { recursive: true });

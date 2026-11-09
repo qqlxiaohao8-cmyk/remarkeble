@@ -41,3 +41,19 @@ export function getRegion(id: RegionId) {
 export function districtName(id: string) {
   return getDistrict(id)?.name ?? "未分區";
 }
+
+export function nearestDistrict(lat: number, lng: number): DistrictId {
+  let best: DistrictId = DISTRICTS[0].id;
+  let score = Number.POSITIVE_INFINITY;
+  const scale = Math.cos((lat * Math.PI) / 180);
+  for (const district of DISTRICTS) {
+    const dlat = district.lat - lat;
+    const dlng = (district.lng - lng) * scale;
+    const dist = dlat * dlat + dlng * dlng;
+    if (dist < score) {
+      score = dist;
+      best = district.id;
+    }
+  }
+  return best;
+}

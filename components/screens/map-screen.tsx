@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { SearchIcon } from "@/components/icons";
 import { ArchiveMap, type DistrictFlash, type MapHandle, type MapView } from "@/components/map/archive-map";
+import { PlaceCard } from "@/components/place-card";
 import { Plate } from "@/components/plate";
 import { useArchive } from "@/lib/archive";
 import { HONG_KONG_BOUNDS, districtShape } from "@/lib/district-geometry";
@@ -21,6 +21,7 @@ export function MapScreen() {
   const [frame, setFrame] = useState(0);
   const [flash, setFlash] = useState<DistrictFlash>(null);
   const [query, setQuery] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
   const mapHandle = useRef<MapHandle | null>(null);
   const needle = query.trim().toLowerCase();
 
@@ -44,6 +45,7 @@ export function MapScreen() {
         ? pinRestaurant.id
         : null;
   const current = filtered.find((restaurant) => restaurant.id === selected);
+  const opened = openId ? filtered.find((restaurant) => restaurant.id === openId) ?? null : null;
 
   const view = useMemo<MapView>(() => {
     if (current) {
@@ -140,12 +142,17 @@ export function MapScreen() {
       </button>
       <div className="pointer-events-none absolute inset-0">
         {current ? (
-          <Link
-            href={`/restaurant/${current.slug}`}
-            className="pressable pointer-events-auto material-card absolute right-4 bottom-4 left-4 z-10 flex items-center gap-3 rounded-2xl border border-paper-deep p-2.5"
+          <button
+            type="button"
+            onClick={() => setOpenId(current.id)}
+            className="pressable pointer-events-auto material-card absolute right-4 bottom-4 left-4 z-10 flex items-center gap-3 rounded-2xl border border-paper-deep p-2.5 text-left"
           >
             <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-paper-deep">
-              <Plate motif={current.motif} tone={current.tone} className="absolute inset-0" label="" />
+              {current.coverImage ? (
+                <img src={current.coverImage} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <Plate motif={current.motif} tone={current.tone} className="absolute inset-0" label="" />
+              )}
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate font-serif text-base font-bold">{current.name}</span>
@@ -154,9 +161,10 @@ export function MapScreen() {
                 <span>{current.established}</span>
               </span>
             </span>
-          </Link>
+          </button>
         ) : null}
       </div>
+      {opened ? <PlaceCard restaurant={opened} onClose={() => setOpenId(null)} /> : null}
     </div>
   );
 }

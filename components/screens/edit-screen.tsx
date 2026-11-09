@@ -14,20 +14,11 @@ export function EditScreen({ id }: { id: string }) {
     return (
       <div className="px-4 py-16">
         <h2 className="font-serif text-3xl">找不到這份登記</h2>
-        <Link href={`${ARCHIVE_ROUTE}/restaurants`} className="mt-4 inline-block text-sm font-medium text-accent">
-          返回餐廳
+        <Link href={ARCHIVE_ROUTE} className="mt-4 inline-block text-sm font-medium text-accent">
+          返回概覽
         </Link>
       </div>
     );
   }
-  return (
-    <div>
-      <div className="flex justify-end px-4 pt-4">
-        <Link href={`/restaurant/${restaurant.slug}`} className="text-sm text-ink-soft">
-          閱讀版面
-        </Link>
-      </div>
-      <RestaurantForm key={restaurant.updatedAt || restaurant.id} mode="edit" restaurant={restaurant} />
-    </div>
-  );
+  return <RestaurantForm key={restaurant.updatedAt || restaurant.id} mode="edit" restaurant={restaurant} />;
 }
