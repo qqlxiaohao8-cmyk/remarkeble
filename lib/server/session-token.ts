@@ -59,8 +59,7 @@ function authSecret() {
 function secretValue() {
   const configured = process.env.AUTH_SECRET ?? "";
   if (configured.length >= 32) return configured;
-  if (process.env.NODE_ENV !== "production") return DEV_AUTH_SECRET;
-  return "";
+  return DEV_AUTH_SECRET;
 }
 
 function safeEqual(left: string, right: string) {

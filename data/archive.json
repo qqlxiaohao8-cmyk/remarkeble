@@ -653,6 +653,14 @@
       "role": "super",
       "passwordHash": "scrypt$0-vXjI6BludZuH6TkZ-W_Q$auzFburZ8MCuKbFvWX_JxY91IzxYpJAPWB8YvBIhlS4",
       "createdAt": "2026-11-09T01:02:46.034Z"
+    },
+    {
+      "id": "d2c8d688-7c89-4479-818c-ef65ba8b3863",
+      "email": "qqlxiaohao8@gmail.com",
+      "name": "qqlxiaohao8",
+      "role": "admin",
+      "passwordHash": "scrypt$BXqvvuzXk8u8RRRKVqcY1A$8EaN_FYgsLfF7RmZKTbZ29f1OIlz-1WpmyiwEju6RJg",
+      "createdAt": "2026-11-09T02:59:22.572Z"
     }
   ]
 }
