@@ -20,29 +20,40 @@ export type MapView =
 
 export type DistrictFlash = { id: string; token: number } | null;
 
+export type MapHandle = {
+  zoomBy: (delta: number) => void;
+};
+
 export function ArchiveMap({
   restaurants,
   selectedId,
   onSelect,
   view,
   flash,
+  onMap,
 }: {
   restaurants: Restaurant[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   view: MapView;
   flash: DistrictFlash;
+  onMap?: (handle: MapHandle | null) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const onSelectRef = useRef(onSelect);
+  const onMapRef = useRef(onMap);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  useEffect(() => {
+    onMapRef.current = onMap;
+  }, [onMap]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -68,10 +79,19 @@ export function ArchiveMap({
         dragRotate: false,
       });
       map = nextMap;
-      nextMap.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
+      onMapRef.current?.({
+        zoomBy(delta) {
+          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          nextMap.easeTo({ zoom: nextMap.getZoom() + delta, duration: reduce ? 0 : 200, essential: true });
+        },
+      });
       nextMap.on("style.load", () => {
         if (cancelled) return;
         for (const layer of nextMap.getStyle().layers ?? []) {
+          const id = layer.id.toLowerCase();
+          if (layer.type === "hillshade" || id.includes("hillshade") || id.includes("shaded")) {
+            nextMap.setLayoutProperty(layer.id, "visibility", "none");
+          }
           if (layer.type !== "symbol" || !layer.layout?.["text-field"]) continue;
           try {
             nextMap.setLayoutProperty(layer.id, "text-field", [
@@ -124,6 +144,7 @@ export function ArchiveMap({
       markersRef.current = [];
       map?.remove();
       mapRef.current = null;
+      onMapRef.current?.(null);
       setReady(false);
     };
   }, []);
@@ -164,10 +185,13 @@ export function ArchiveMap({
         button.append(name, dot);
         button.setAttribute("aria-label", `${restaurant.name}，${districtName(restaurant.districtId)}`);
         button.setAttribute("aria-pressed", String(selected));
-        if (!restaurant.verified) button.dataset.pending = "true";
+        if (restaurant.verification ? restaurant.verification === "unverified" : !restaurant.verified) {
+          button.dataset.pending = "true";
+        }
         button.addEventListener("click", () => onSelectRef.current(restaurant.id));
+        const placed = typeof restaurant.lng === "number" && typeof restaurant.lat === "number";
         const marker = new maplibregl.Marker({ element: button, anchor: "bottom" })
-          .setLngLat([district.lng + spread, district.lat])
+          .setLngLat(placed ? [restaurant.lng as number, restaurant.lat as number] : [district.lng + spread, district.lat])
           .addTo(map);
         markersRef.current.push(marker);
       }
@@ -193,7 +217,7 @@ export function ArchiveMap({
         [view.west, view.south],
         [view.east, view.north],
       ],
-      { padding: { top: 28, bottom: 108, left: 36, right: 20 }, maxZoom: 14, duration, essential: true },
+      { padding: { top: 124, bottom: 108, left: 36, right: 20 }, maxZoom: 14, duration, essential: true },
     );
   }, [ready, view]);
 

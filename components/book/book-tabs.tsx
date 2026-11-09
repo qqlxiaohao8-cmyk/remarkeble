@@ -1,14 +1,11 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { MapIcon, NoteIcon, TocIcon } from "@/components/icons";
-import { cn } from "@/lib/cn";
 
 const TABS = [
-  { href: "/map", label: "地圖", icon: MapIcon },
-  { href: "/directory", label: "目錄", icon: TocIcon },
-  { href: "/about", label: "關於", icon: NoteIcon },
+  { href: "/map", label: "地圖" },
+  { href: "/directory", label: "目錄" },
+  { href: "/about", label: "關於" },
 ] as const;
 
 function selected(href: string, path: string) {
@@ -16,32 +13,40 @@ function selected(href: string, path: string) {
   return path === href || path.startsWith(`${href}/`);
 }
 
+const LAYERS = [
+  { z: 20, width: 42, background: "#ffffff" },
+  { z: 4, width: 32, background: "#ececef" },
+  { z: 3, width: 28, background: "#dedee3" },
+] as const;
+
 export function BookTabs({ path }: { path: string }) {
-  const reduce = useReducedMotion();
+  const activeIndex = TABS.findIndex((tab) => selected(tab.href, path));
+  let behind = 0;
+  const depth = TABS.map((_, index) => (index === activeIndex ? 0 : Math.min(++behind, 2)));
 
   return (
-    <nav
-      className="absolute top-1/2 right-2 z-30 flex -translate-y-1/2 translate-x-3 flex-col gap-4"
-      aria-label="索引"
-    >
-      {TABS.map((tab) => {
-        const active = selected(tab.href, path);
-        const Icon = tab.icon;
+    <nav className="pointer-events-none absolute inset-0" aria-label="索引">
+      {TABS.map((tab, index) => {
+        const layer = LAYERS[depth[index]];
+        const active = index === activeIndex;
         return (
-          <Link key={tab.href} href={tab.href} aria-current={active ? "page" : undefined} className="relative block">
-            <motion.span
-              className={cn(
-                "flex items-center justify-center gap-1.5 rounded-r-2xl border-y border-r border-black/10 px-1.5 py-3 text-xs font-semibold shadow-[2px_0_0_#d1d1d6,0_12px_24px_-16px_rgba(0,0,0,0.2)]",
-                active ? "bg-accent text-white" : "bg-paper text-ink",
-              )}
-              style={{ writingMode: "vertical-rl" }}
-              animate={{ x: active ? 6 : 0 }}
-              whileTap={reduce ? undefined : { scale: 0.97 }}
-              transition={reduce ? { duration: 0.15 } : { type: "spring", bounce: 0, duration: 0.35 }}
-            >
-              <Icon className="h-3.5 w-3.5" style={{ writingMode: "horizontal-tb" }} />
-              {tab.label}
-            </motion.span>
+          <Link
+            key={tab.href}
+            href={tab.href}
+            aria-current={active ? "page" : undefined}
+            className="pointer-events-auto absolute flex items-center justify-center border-y border-r border-black/10 text-[11px] font-semibold text-ink transition-[width] duration-200 ease-out motion-reduce:transition-none"
+            style={{
+              writingMode: "vertical-rl",
+              top: `${20 + index * 15}%`,
+              left: "calc(100% - 22px)",
+              zIndex: layer.z,
+              height: 76,
+              width: layer.width,
+              background: layer.background,
+              borderRadius: "0 22px 22px 0",
+            }}
+          >
+            {tab.label}
           </Link>
         );
       })}

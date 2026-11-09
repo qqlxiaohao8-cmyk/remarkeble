@@ -1,88 +1,90 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useAdmin } from "@/components/admin/admin-provider";
 import { QuietButton } from "@/components/admin/fields";
-import { useArchive } from "@/lib/archive";
 import { districtName } from "@/lib/districts";
+import { ARCHIVE_ROUTE } from "@/lib/routes";
+import { verificationOf } from "@/lib/status";
+import type { Restaurant, VerificationStatus } from "@/lib/types";
 
 export function AdminVerification() {
-  const { restaurants, updateRestaurant } = useArchive();
-  const pending = restaurants.filter((restaurant) => !restaurant.verified);
-  const verified = restaurants.filter((restaurant) => restaurant.verified);
+  const { restaurants, ready, loadError, updateRestaurant } = useAdmin();
+  const [error, setError] = useState("");
+  if (loadError) return <p className="px-4 py-10 text-sm text-stamp">{loadError}</p>;
+  if (!ready) return <p className="px-4 py-10 text-sm text-ink-soft">讀取檔案…</p>;
+
+  function setStatus(id: string, verification: VerificationStatus) {
+    setError("");
+    void updateRestaurant(id, { verification }).catch((reason: unknown) => {
+      setError(reason instanceof Error ? reason.message : "未能更新。");
+    });
+  }
 
   return (
     <div className="px-4 py-5">
       <h2 className="font-serif text-3xl">核實</h2>
-      <p className="mt-2 text-sm leading-6 text-ink-soft">蓋印表示地址、時間和招牌已在入藏當日核對過。</p>
-      <Section title="待核實" empty="沒有待核實的紀錄。">
-        {pending.map((restaurant) => (
-          <Row
-            key={restaurant.id}
-            name={restaurant.name}
-            meta={districtName(restaurant.districtId)}
-            href={`/admin/restaurants/${restaurant.id}`}
-            action="蓋印"
-            onAction={() => updateRestaurant(restaurant.id, { verified: true })}
-          />
-        ))}
-      </Section>
-      <Section title="已核實" empty="尚未有核實紀錄。">
-        {verified.map((restaurant) => (
-          <Row
-            key={restaurant.id}
-            name={restaurant.name}
-            meta={districtName(restaurant.districtId)}
-            href={`/admin/restaurants/${restaurant.id}`}
-            action="撤印"
-            onAction={() => updateRestaurant(restaurant.id, { verified: false })}
-          />
-        ))}
-      </Section>
+      <p className="mt-2 text-sm leading-6 text-ink-soft">未核實不會在公開頁顯示印記。已到訪和已核實會出現在故事頁。</p>
+      {error ? <p className="mt-3 text-sm text-stamp">{error}</p> : null}
+      <Section
+        title="未核實"
+        restaurants={restaurants.filter((item) => verificationOf(item) === "unverified")}
+        empty="沒有未核實的紀錄。"
+        action="記為已到訪"
+        onAction={(id) => setStatus(id, "visited")}
+      />
+      <Section
+        title="已到訪"
+        restaurants={restaurants.filter((item) => verificationOf(item) === "visited")}
+        empty="還沒有到訪紀錄。"
+        action="核實"
+        onAction={(id) => setStatus(id, "verified")}
+      />
+      <Section
+        title="已核實"
+        restaurants={restaurants.filter((item) => verificationOf(item) === "verified")}
+        empty="尚未有核實紀錄。"
+        action="撤回"
+        onAction={(id) => setStatus(id, "unverified")}
+      />
     </div>
   );
 }
 
 function Section({
   title,
+  restaurants,
   empty,
-  children,
-}: {
-  title: string;
-  empty: string;
-  children: React.ReactNode;
-}) {
-  const items = Array.isArray(children) ? children : [children];
-  const filled = items.some(Boolean);
-  return (
-    <section className="mt-8">
-      <h3 className="font-serif text-2xl">{title}</h3>
-      {filled ? <ul className="mt-2">{children}</ul> : <p className="mt-3 text-sm text-ink-faint">{empty}</p>}
-    </section>
-  );
-}
-
-function Row({
-  name,
-  meta,
-  href,
   action,
   onAction,
 }: {
-  name: string;
-  meta: string;
-  href: string;
+  title: string;
+  restaurants: Restaurant[];
+  empty: string;
   action: string;
-  onAction: () => void;
+  onAction: (id: string) => void;
 }) {
   return (
-    <li className="flex items-center justify-between gap-3 border-b border-line py-3">
-      <Link href={href} className="min-w-0">
-        <span className="block truncate font-serif text-lg">{name}</span>
-        <span className="block text-[12px] text-ink-soft">{meta}</span>
-      </Link>
-      <QuietButton className="shrink-0 px-3 py-2" onClick={onAction}>
-        {action}
-      </QuietButton>
-    </li>
+    <section className="mt-8">
+      <h3 className="font-serif text-2xl">{title}</h3>
+      {restaurants.length === 0 ? (
+        <p className="mt-3 text-sm text-ink-faint">{empty}</p>
+      ) : (
+        <ul className="mt-2">
+          {restaurants.map((restaurant) => (
+            <li key={restaurant.id} className="flex items-center justify-between gap-3 border-b border-line py-3">
+              <Link href={`${ARCHIVE_ROUTE}/restaurants/${restaurant.id}`} className="min-w-0">
+                <span className="block truncate font-serif text-lg">{restaurant.name}</span>
+                <span className="block text-[12px] text-ink-soft">{districtName(restaurant.districtId)}</span>
+              </Link>
+              <QuietButton className="shrink-0 rounded-2xl px-3 py-2" onClick={() => onAction(restaurant.id)}>
+                {action}
+              </QuietButton>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

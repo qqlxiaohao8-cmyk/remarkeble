@@ -18,6 +18,24 @@ export function AboutScreen() {
       <p className="font-serif text-sm leading-7 text-ink-soft">
         最早的一頁寫於 {earliest}。現在收了 {published.length} 家，分布在 {districts} 個地區。
       </p>
+      <section className="space-y-2 border-t border-paper-deep pt-6">
+        <h3 className="font-serif text-base font-bold">特別鳴謝</h3>
+        <p className="font-serif text-sm leading-7">
+          地圖來自{" "}
+          <a href="https://openfreemap.org" target="_blank" rel="noreferrer" className="text-accent">
+            OpenFreeMap
+          </a>
+          ，圖磚由{" "}
+          <a href="https://openmaptiles.org" target="_blank" rel="noreferrer" className="text-accent">
+            OpenMapTiles
+          </a>{" "}
+          繪製，資料來自{" "}
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="text-accent">
+            OpenStreetMap
+          </a>
+          。
+        </p>
+      </section>
     </article>
   );
 }

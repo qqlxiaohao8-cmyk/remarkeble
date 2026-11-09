@@ -57,21 +57,26 @@ export function DirectoryScreen() {
       {list.length === 0 ? (
         <p className="py-10 font-serif text-sm leading-7 text-ink-soft">沒有符合的店。換一個詞，或改看全部。</p>
       ) : (
-        <ul>
+        <ul className="mt-4 space-y-3">
           {list.map((restaurant) => (
-            <li key={restaurant.id} className="border-b border-paper-deep">
-              <Link href={`/restaurant/${restaurant.slug}`} className="pressable flex gap-3 py-4">
-                <span className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl bg-paper-deep">
-                  <Plate motif={restaurant.motif} tone={restaurant.tone} className="absolute inset-0" label="" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-serif text-lg leading-tight font-bold">{restaurant.name}</span>
-                  <span className="mt-0.5 block truncate text-xs text-ink-soft">{restaurant.nameEn}</span>
-                  <span className="mt-1.5 flex flex-wrap gap-x-2 text-xs text-ink-soft">
-                    <span>{districtName(restaurant.districtId)}</span>
-                    <span>{restaurant.established}</span>
-                    <span>{MOTIF_LABELS[restaurant.motif]}</span>
+            <li key={restaurant.id}>
+              <Link
+                href={`/restaurant/${restaurant.slug}`}
+                className="pressable flex items-center justify-between gap-3 rounded-2xl bg-[#EFECE6] p-4 shadow-[0_8px_24px_-4px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.04)]"
+              >
+                <span className="min-w-0 space-y-2">
+                  <span className="block">
+                    <span className="block truncate text-sm font-bold">{restaurant.name}</span>
+                    <span className="mt-0.5 block truncate text-[11px] font-medium text-[#8E8E93]">{restaurant.nameEn}</span>
                   </span>
+                  <span className="inline-flex max-w-full items-center rounded-full bg-[#E2EFE4] px-2.5 py-1 text-xs font-semibold text-[#2D7544]">
+                    <span className="truncate">
+                      {districtName(restaurant.districtId)} {restaurant.established}
+                    </span>
+                  </span>
+                </span>
+                <span className="relative h-20 w-28 shrink-0">
+                  <Plate motif={restaurant.motif} tone={restaurant.tone} className="absolute inset-0" label="" />
                 </span>
               </Link>
             </li>

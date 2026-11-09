@@ -19,7 +19,9 @@ export function BookShell({ children }: { children: React.ReactNode }) {
         <div className="notebook relative min-h-0 flex-1">
           <div className="notebook-board" aria-hidden />
           <div className="notebook-spine" aria-hidden />
-          <div className="notebook-edge" aria-hidden />
+          <div className="notebook-rings" aria-hidden />
+          <div className="notebook-under notebook-under-b" aria-hidden />
+          <div className="notebook-under notebook-under-a" aria-hidden />
           <div className="notebook-sheet">
             <div className="notebook-gutter" aria-hidden />
             <div className="relative h-full">

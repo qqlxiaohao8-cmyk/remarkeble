@@ -3,38 +3,40 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
-import { useArchive } from "@/lib/archive";
+import { useAdmin } from "@/components/admin/admin-provider";
+import { ARCHIVE_ROUTE } from "@/lib/routes";
 import { cn } from "@/lib/cn";
 
 const NAV = [
-  { href: "/admin", label: "概覽" },
-  { href: "/admin/restaurants", label: "餐廳" },
-  { href: "/admin/restaurants/new", label: "入藏" },
-  { href: "/admin/media", label: "圖版" },
-  { href: "/admin/verification", label: "核實" },
-  { href: "/admin/publication", label: "出版" },
+  { href: ARCHIVE_ROUTE, label: "概覽" },
+  { href: `${ARCHIVE_ROUTE}/restaurants`, label: "餐廳" },
+  { href: `${ARCHIVE_ROUTE}/restaurants/new`, label: "入藏" },
+  { href: `${ARCHIVE_ROUTE}/media`, label: "圖版" },
+  { href: `${ARCHIVE_ROUTE}/verification`, label: "核實" },
+  { href: `${ARCHIVE_ROUTE}/publication`, label: "出版" },
+  { href: `${ARCHIVE_ROUTE}/admins`, label: "帳戶" },
 ];
 
 function active(href: string, path: string) {
-  if (href === "/admin") return path === "/admin";
-  if (href === "/admin/restaurants") {
-    return path === "/admin/restaurants" || /^\/admin\/restaurants\/(?!new$)[^/]+$/.test(path);
+  if (href === ARCHIVE_ROUTE) return path === ARCHIVE_ROUTE;
+  if (href === `${ARCHIVE_ROUTE}/restaurants`) {
+    return path === `${ARCHIVE_ROUTE}/restaurants` || new RegExp(`^${ARCHIVE_ROUTE}/restaurants/(?!new$)[^/]+$`).test(path);
   }
   return path === href || path.startsWith(`${href}/`);
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const { lock } = useArchive();
+  const { session, logout } = useAdmin();
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex shrink-0 items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
-        <div>
-          <p className="text-[10px] tracking-[0.22em] text-ink-faint">ARCHIVE ROOM</p>
+      <header className="flex shrink-0 items-center justify-between gap-3 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
+        <div className="min-w-0">
           <h1 className="font-serif text-2xl leading-none">檔案室</h1>
+          <p className="mt-1 truncate text-xs text-ink-faint">{session.email}</p>
         </div>
-        <div className="flex items-center gap-4 text-[11px] tracking-[0.14em] text-ink-soft">
-          <button type="button" onClick={lock}>
-            鎖上
+        <div className="flex shrink-0 items-center gap-4 text-sm text-ink-soft">
+          <button type="button" onClick={() => void logout()}>
+            登出
           </button>
           <Link href="/">藏書</Link>
         </div>
@@ -60,8 +62,8 @@ function AdminNav() {
                 href={item.href}
                 aria-current={selected ? "page" : undefined}
                 className={cn(
-                  "block px-3 py-1.5 text-[12px] tracking-[0.14em]",
-                  selected ? "rounded-full bg-accent text-white" : "text-ink-soft",
+                  "block rounded-full px-3 py-1.5 text-[12px] font-medium",
+                  selected ? "bg-accent text-white" : "text-ink-soft",
                 )}
               >
                 {item.label}
